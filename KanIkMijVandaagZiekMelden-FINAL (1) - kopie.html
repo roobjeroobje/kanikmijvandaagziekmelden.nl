@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KanIkMijVandaagZiekMelden.nl - Strategisch Verzuim 2026</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --bg: #0a0a0f; --fg: #f0f0f0; --accent: #00ff88; --accent2: #ffee00;
+            --card: #12121a; --border: #2a2a3a; --accent-rgb: 0, 255, 136;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Space Mono', monospace;
+            background: var(--bg); color: var(--fg);
+            min-height: 100vh; transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-x: hidden;
+        }
+        body.state-ja { --bg: #0d1f0a; --accent: #39ff14; --card: #0f2a0a; --border: #1a5c10; --accent-rgb: 57, 255, 20; }
+        body.state-nee { --bg: #080c14; --accent: #4a6fa5; --card: #0c1120; --border: #1a2236; --accent-rgb: 74, 111, 165; }
+
+        .font-display { font-family: 'Bebas Neue', sans-serif; }
+        .font-syne { font-family: 'Syne', sans-serif; }
+
+        .glass-card { 
+            background: var(--card); 
+            border: 1px solid var(--border); 
+            border-radius: 16px;
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+        }
+        
+        .seg-btn {
+            font-size: 0.8rem; font-weight: 700; padding: 10px 18px; border-radius: 10px;
+            border: 1px solid var(--border); color: var(--fg); text-transform: uppercase; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;
+        }
+        .seg-btn.active { background: var(--accent); color: #000; border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(var(--accent-rgb), 0.3); }
+
+        .verdict-text {
+            font-family: 'Bebas Neue', sans-serif; font-size: clamp(6rem, 25vw, 14rem);
+            line-height: 0.8; letter-spacing: -0.02em; transition: all 0.5s ease;
+        }
+        .state-ja .verdict-text { color: var(--accent); text-shadow: 0 0 50px rgba(57, 255, 20, 0.5); }
+
+        .ticker-wrap { 
+            overflow: hidden; background: var(--accent); color: #000; 
+            font-size: 0.75rem; font-weight: 800; padding: 10px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .ticker-content { display: inline-block; animation: ticker 60s linear infinite; white-space: nowrap; }
+        @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+        input[type="date"] {
+            color-scheme: dark; background: #1a1a24; border: 1px solid var(--border);
+            padding: 8px 12px; border-radius: 8px; color: white; outline: none;
+        }
+        
+        .gold-item { border-left: 4px solid transparent; transition: all 0.3s; }
+        .gold-item:hover { border-left-color: var(--accent); background: rgba(255,255,255,0.02); }
+
+        .intensity-top { border-left: 4px solid #ff4444; }
+        .intensity-good { border-left: 4px solid #ffaa00; }
+        .intensity-normal { border-left: 4px solid #6699ff; }
+
+        .month-header { background: rgba(0,255,136,0.1); padding: 12px 16px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid var(--accent); }
+        .month-title { font-size: 1.1rem; font-weight: bold; color: var(--accent); }
+        .month-season { font-size: 0.75rem; opacity: 0.6; margin-top: 4px; }
+
+        .tag-region { display: inline-block; font-size: 0.7rem; padding: 4px 8px; border-radius: 4px; margin-right: 6px; margin-bottom: 4px; background: rgba(255,255,255,0.08); }
+        .tag-top { color: #ff6666; border: 1px solid #ff4444; }
+        .tag-good { color: #ffbb33; border: 1px solid #ffaa00; }
+        .tag-normal { color: #88bbff; border: 1px solid #6699ff; }
+
+        .verdict-card { min-height: 300px; display: flex; flex-direction: column; justify-content: center; }
+        .verdict-message { max-width: 600px; margin: 0 auto; }
+        .verdict-emoji {
+            font-size: clamp(3.25rem, 16vw, 6.5rem);
+            line-height: 1;
+            filter: drop-shadow(0 0 24px rgba(var(--accent-rgb), 0.35));
+        }
+        .state-nee .verdict-text {
+            color: var(--accent);
+            text-shadow: 0 0 36px rgba(74, 111, 165, 0.45);
+        }
+        .state-nee .verdict-emoji {
+            filter: drop-shadow(0 0 18px rgba(74, 111, 165, 0.35));
+        }
+
+        /* COUNTDOWN STYLES */
+        .countdown-box {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.15) 0%, rgba(255, 238, 0, 0.1) 100%);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.2);
+            animation: pulse-countdown 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-countdown {
+            0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 136, 0.2); }
+            50% { box-shadow: 0 0 40px rgba(0, 255, 136, 0.4); }
+        }
+
+        .countdown-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            opacity: 0.7;
+            margin-bottom: 8px;
+            color: var(--accent2);
+        }
+
+        .countdown-text {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .countdown-days {
+            font-size: 1.8rem;
+            font-family: 'Bebas Neue', sans-serif;
+            color: var(--accent2);
+            letter-spacing: 0.1em;
+            margin-top: 8px;
+        }
+
+        /* CALCULATOR STYLES */
+        .calculator-box {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(255, 238, 0, 0.1) 100%);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 24px;
+            text-align: center;
+        }
+
+        .calculator-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            opacity: 0.6;
+            margin-bottom: 12px;
+            color: var(--accent2);
+        }
+
+        .calculator-text {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        .calculator-text strong {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        /* WHATSAPP BUTTON */
+        .whatsapp-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #25d366;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+            margin-top: 8px;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .whatsapp-btn:hover {
+            background: #20ba5a;
+            transform: scale(1.05);
+        }
+
+        /* SLIM KOPPELEN INDICATOR */
+        .slim-koppelen {
+            background: rgba(255, 238, 0, 0.15);
+            border: 1px solid var(--accent2);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+            font-size: 0.9rem;
+            color: var(--accent2);
+            font-weight: bold;
+        }
+
+        .slim-koppelen-desc {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+
+        /* Info button */
+        #infoBtn {
+            position: fixed; bottom: 24px; right: 24px; z-index: 999;
+            width: 44px; height: 44px; border-radius: 50%;
+            background: var(--card); border: 1px solid var(--border);
+            color: var(--fg); font-size: 1.1rem; font-weight: 700;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            transition: all 0.2s ease; font-family: 'Space Mono', monospace;
+        }
+        #infoBtn:hover { border-color: var(--accent); color: var(--accent); transform: scale(1.08); }
+        #infoOverlay {
+            display: none; position: fixed; inset: 0; z-index: 998;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+            align-items: center; justify-content: center;
+        }
+        #infoOverlay.open { display: flex; }
+        #infoBox {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 16px; padding: 32px; max-width: 340px; width: 90%;
+            text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+        }
+        #infoBox p { font-size: 0.85rem; line-height: 1.7; opacity: 0.85; }
+        #infoBox .close-btn {
+            margin-top: 20px; display: inline-block; padding: 8px 20px;
+            border: 1px solid var(--border); border-radius: 8px;
+            font-size: 0.75rem; cursor: pointer; transition: all 0.2s;
+            background: transparent; color: var(--fg); font-family: 'Space Mono', monospace;
+        }
+        #infoBox .close-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* Mobile optimalisatie */
+        @media (max-width: 640px) {
+            .verdict-text { font-size: clamp(4rem, 26vw, 8rem) !important; }
+            .main-content { padding-left: 12px !important; padding-right: 12px !important; }
+            .glass-card { padding: 20px !important; }
+            h1 { font-size: 1.6rem !important; }
+            #infoBtn { bottom: 16px; right: 16px; }
+        }
+    </style>
+</head>
+<body class="state-nee">
+
+<div class="ticker-wrap">
+    <div class="ticker-content">
+        &nbsp;&nbsp;&nbsp;🤫 NIET OP INSTAGRAM POSTEN VANDAAG! • 🌡️ DE THERMOMETER ZEGT: BLIJF MAAR LIGGEN • 🥨 KORTE TERMIJN 'ZIEK', LANGE TERMIJN GENIETEN • 🛏️ JE BED HEEFT VERLATINGSANGST • 🐕 DE HOND VINDT OOK DAT JE THUIS MOET BLIJVEN • 🥐 OMDAT 'GEEN ZIN' OOK EEN REDEN IS • 🤒 OEFEN NOG ÉÉN KEER JE "IK-BEN-ECHT-HEEL-ZIEK" STEM • 🔋 BATTERIJ OP 1% • 🛋️ BANKHANGEN IS OOK EEN SPORT • 📦 NIET DE DEUR OPEN DOEN VOOR DE POSTBODE • ☕ VANDAAG ALLEEN KOFFIE IN PYJAMA • 🕵️‍♂️ PAS OP DAT JE JE COLLEGA'S NIET TEGENKOMT BIJ DE AH • 🧘 MENTALE GEZONDHEID IS OOK GEZONDHEID • 🛑 DE WEKKER IS DE VIJAND •&nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp;🤫 NIET OP INSTAGRAM POSTEN VANDAAG! • 🌡️ DE THERMOMETER ZEGT: BLIJF MAAR LIGGEN • 🥨 KORTE TERMIJN 'ZIEK', LANGE TERMIJN GENIETEN • 🛏️ JE BED HEEFT VERLATINGSANGST • 🐕 DE HOND VINDT OOK DAT JE THUIS MOET BLIJVEN • 🥐 OMDAT 'GEEN ZIN' OOK EEN REDEN IS • 🤒 OEFEN NOG ÉÉN KEER JE "IK-BEN-ECHT-HEEL-ZIEK" STEM • 🔋 BATTERIJ OP 1% • 🛋️ BANKHANGEN IS OOK EEN SPORT • 📦 NIET DE DEUR OPEN DOEN VOOR DE POSTBODE • ☕ VANDAAG ALLEEN KOFFIE IN PYJAMA • 🕵️‍♂️ PAS OP DAT JE JE COLLEGA'S NIET TEGENKOMT BIJ DE AH • 🧘 MENTALE GEZONDHEID IS OOK GEZONDHEID • 🛑 DE WEKKER IS DE VIJAND •&nbsp;&nbsp;&nbsp;
+    </div>
+</div>
+
+<div class="main-content max-w-4xl mx-auto px-4 pb-20">
+    <header class="pt-10 pb-8 text-center">
+        <div class="inline-block px-3 py-1 rounded-full bg-white/5 border border-white/10 mb-4">
+            <p class="font-syne text-[10px] tracking-[0.3em] uppercase" style="color: var(--accent)">● Live Situatie Analyse</p>
+        </div>
+        <h1 class="font-display text-5xl tracking-tight mb-2 uppercase">KanIkMijVandaagZiekMelden<span style="color: var(--accent)">.nl</span></h1>
+        <p class="text-xs opacity-50 font-medium">Omdat 'geen zin' soms ook een reden is.</p>
+    </header>
+
+    <div class="glass-card p-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div>
+                <p class="text-[11px] uppercase tracking-widest mb-4 font-bold opacity-80" style="color: var(--accent)">Wie ben je?</p>
+                <div class="flex gap-3 mb-3">
+                    <button class="seg-btn active" id="btnScholier" onclick="setType('scholier')">Scholier</button>
+                    <button class="seg-btn" id="btnArbeider" onclick="setType('arbeider')">Arbeider</button>
+                </div>
+                <p id="typeSub" class="text-[10px] opacity-40 italic">Schoolvakanties worden meegerekend.</p>
+            </div>
+            <div>
+                <p class="text-[11px] uppercase tracking-widest mb-4 font-bold opacity-80" style="color: var(--accent)">In welke regio?</p>
+                <div class="flex gap-3 mb-3">
+                    <button class="seg-btn active" id="btnNoord" onclick="setRegio('noord')">Noord</button>
+                    <button class="seg-btn" id="btnMidden" onclick="setRegio('midden')">Midden</button>
+                    <button class="seg-btn" id="btnZuid" onclick="setRegio('zuid')">Zuid</button>
+                </div>
+                <p id="regioSub" class="text-[10px] opacity-40 italic">Groningen, Friesland, Drenthe, Overijssel, Flevoland, Noord-Holland</p>
+            </div>
+        </div>
+        <div class="mt-8 pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+                <p class="text-[11px] uppercase tracking-widest mb-3 font-bold opacity-80" style="color: var(--accent)">Kies een datum</p>
+                <input type="date" id="datePicker" min="2026-01-01" max="2026-12-31" class="w-full sm:w-auto">
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="setToday()" style="background: var(--accent); box-shadow: 0 4px 15px rgba(var(--accent-rgb), 0.2);" class="text-black px-6 py-2 rounded-lg text-xs font-bold uppercase hover:brightness-110 transition active:scale-95">
+                    🏝️ Vandaag
+                </button>
+                <p class="text-xs font-bold opacity-60 text-right min-w-[140px]" id="dayLabel"></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-card p-12 mb-8 text-center relative overflow-hidden border-2 border-white/5 verdict-card">
+        <div class="verdict-message">
+            <div class="verdict-text mb-2" id="verdictWord">NEE</div>
+            <div class="verdict-emoji mb-5" id="verdictEmoji" aria-hidden="true">💼</div>
+            <div class="font-syne font-bold text-xl uppercase mb-4 tracking-tight leading-tight" id="subVerdict">Geen tactische ziekmelding vandaag</div>
+            <p class="text-sm opacity-70 leading-relaxed" id="verdictReason">Laden…</p>
+        </div>
+
+        <!-- COUNTDOWN NAAR VOLGENDE JA -->
+        <div class="countdown-box" id="countdownContainer">
+            <div class="countdown-title">⏱️ Countdown naar volgende JA</div>
+            <div class="countdown-text" id="countdownMessage">Loading...</div>
+            <div class="countdown-days" id="countdownDays">0 DAGEN</div>
+        </div>
+    </div>
+
+    <div class="glass-card p-8 mb-8">
+        <div class="flex items-center justify-between mb-10">
+            <div class="flex items-center gap-4">
+                <span class="text-4xl">🏆</span>
+                <div>
+                    <h2 class="font-syne font-bold text-sm uppercase tracking-[0.2em]" style="color: var(--accent2)">De Goudmijn — <span id="monthTitle">DEZE MAAND</span></h2>
+                    <p class="text-xs opacity-50">De beste momenten om ziek te melden. Eén tip per startdatum; strategieën die meerdere maanden beslaan (zoals zomer) verschijnen in <strong class="opacity-80">elke maand</strong> waar het blok doorloopt.</p>
+                </div>
+            </div>
+            <span class="hidden sm:inline-block bg-white/5 border border-white/10 px-3 py-1 rounded text-[10px] font-bold opacity-40 uppercase">Slim Plan</span>
+        </div>
+        <div id="goldList" class="space-y-4">
+            <!-- Data wordt hier dynamisch ingeladen -->
+        </div>
+
+        <!-- CALCULATOR ONDERAAN GOUDMIJN -->
+        <div class="calculator-box">
+            <div class="calculator-title" id="calcStrategyTitle">💰 Jouw 2026 Besparings-Strategie</div>
+            <div class="calculator-text max-w-lg mx-auto">
+                <p class="mb-2"><strong id="calcMonthPart">—</strong>: <strong id="calcTipCount">0</strong> tips (blok raakt deze kalendermaand).</p>
+                <p class="mb-2">Optelsom van alle tips (elk apart te gebruiken): <strong id="calcBonusSum">+0</strong> bonus · <strong id="calcSickLine">0 ziekedagen</strong> · langste één blok: <strong id="calcLongest">0</strong> dagen.</p>
+                <p class="text-[11px] opacity-65 leading-snug">Bonus = extra kalenderdagen bovenop wat je ziek meldt. Geen “dagen ín één maand” — het zijn losse periodes.</p>
+            </div>
+            <p class="text-[10px] opacity-55 mt-4 max-w-xl mx-auto leading-relaxed"><strong>Op één stuk vrij:</strong> alles wat <strong>zonder gat</strong> aan elkaar vastzit (weekend/feest/vakantie + jouw ziekdagen + wat er direct tegenaan plakt) telt als <strong>één blok</strong>.</p>
+        </div>
+    </div>
+
+    <div class="glass-card p-8 bg-black/40">
+        <p class="text-xs font-bold uppercase tracking-widest mb-6 flex items-center gap-2" style="color: var(--accent)">📍 Regio gids</p>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 text-sm leading-relaxed opacity-80">
+            <div>
+                <b class="text-blue-400 block mb-3 uppercase tracking-wider text-base">Noord</b>
+                <p class="text-xs">Groningen, Friesland, Drenthe, Overijssel, Flevoland, Noord-Holland</p>
+            </div>
+            <div>
+                <b class="text-yellow-400 block mb-3 uppercase tracking-wider text-base">Midden</b>
+                <p class="text-xs">Utrecht, Zuid-Holland, Gelderland, Noord-Brabant, Flevoland</p>
+            </div>
+            <div>
+                <b class="text-red-400 block mb-3 uppercase tracking-wider text-base">Zuid</b>
+                <p class="text-xs">Noord-Brabant, Limburg, Zeeland, Gelderland</p>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="mt-12 text-center text-[10px] opacity-20 font-mono uppercase tracking-widest">
+        KanIkMijVandaagZiekMelden.nl • 2026 • Wij zijn niet aansprakelijk voor boze docenten of werkgevers
+    </footer>
+</div>
+
+<!-- Info knopje -->
+<button id="infoBtn" onclick="document.getElementById('infoOverlay').classList.add('open')">?</button>
+<div id="infoOverlay" onclick="if(event.target===this)this.classList.remove('open')">
+    <div id="infoBox">
+        <p style="color: var(--accent); font-weight: bold; margin-bottom: 12px; font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase;">Over deze site</p>
+        <p>Deze site is een project van Robin</p>
+        <button class="close-btn" onclick="document.getElementById('infoOverlay').classList.remove('open')">Sluiten</button>
+    </div>
+</div>
+
+<script>
+const FEESTDAGEN = [
+    {date: '2026-01-01', n: 'Nieuwjaarsdag'},
+    {date: '2026-04-03', n: 'Goede Vrijdag'}, {date: '2026-04-06', n: '2e Paasdag'},
+    {date: '2026-04-27', n: 'Koningsdag'}, {date: '2026-05-05', n: 'Bevrijdingsdag'},
+    {date: '2026-05-14', n: 'Hemelvaart'}, {date: '2026-05-25', n: '2e Pinksterdag'},
+    {date: '2026-12-25', n: '1e Kerstdag'}, {date: '2026-12-26', n: '2e Kerstdag'}
+];
+
+/* Bron regels: Rijksoverheid schooljaar 2025-2026 + 2026-2027 (herfst okt '26). Kerst start ook in dec 2025 voor situatie jan '26. */
+const VAKANTIES = {
+    noord: [
+        {s:'2025-12-20', e:'2026-01-04'}, {s:'2026-02-21', e:'2026-03-01'}, {s:'2026-04-25', e:'2026-05-03'},
+        {s:'2026-07-04', e:'2026-08-16'}, {s:'2026-10-10', e:'2026-10-18'}, {s:'2026-12-19', e:'2027-01-03'}
+    ],
+    midden: [
+        {s:'2025-12-20', e:'2026-01-04'}, {s:'2026-02-14', e:'2026-02-22'}, {s:'2026-04-25', e:'2026-05-03'},
+        {s:'2026-07-18', e:'2026-08-30'}, {s:'2026-10-17', e:'2026-10-25'}, {s:'2026-12-19', e:'2027-01-03'}
+    ],
+    zuid: [
+        {s:'2025-12-20', e:'2026-01-04'}, {s:'2026-02-14', e:'2026-02-22'}, {s:'2026-04-25', e:'2026-05-03'},
+        {s:'2026-07-11', e:'2026-08-23'}, {s:'2026-10-17', e:'2026-10-25'}, {s:'2026-12-19', e:'2027-01-03'}
+    ]
+};
+
+/* Goudmijn: `days` + startdatum; het getoonde totaal wordt altijd berekend via telVrijeDagenOpRij (zelfde logica als hieronder). optioneel veld total in data wordt niet meer gebruikt. Bron vakanties: Rijksoverheid. */
+const GOUDMIJN_DATA = {
+    noord: [
+        {date: '2026-01-02', days: 1, total: 4, intensity: 'top', target: ['Beiden'], reason: 'Vrijdag na Nieuwjaarsdag (do): do feestdag + deze vrijdag ziek + weekend = 4 dagen op rij.', season: '❄️ JANUARI', koppelen: null},
+        {date: '2026-02-16', days: 5, total: 16, intensity: 'good', target: ['Scholier'], reason: 'Hele schoolweek vóór voorjaarsvakantie (za 21 feb): za–zo + ma–vr ziek plakt aan hele vakantie t/m zo 1 mrt.', season: '🥶 FEBRUARI', koppelen: null},
+        {date: '2026-03-13', days: 1, total: 3, intensity: 'normal', target: ['Beiden'], reason: 'Vrijdag de 13e: klassieke vrijdag-brug naar het weekend.', season: '🌸 MAART', koppelen: null},
+        {date: '2026-04-20', days: 5, total: 16, intensity: 'good', target: ['Scholier'], reason: 'Schoolweek vóór meivakantie (za 25 apr): weekend + ma–vr ziek + hele meivakantie = één lange vrije reeks.', season: '🐣 APRIL', koppelen: null},
+        {date: '2026-04-24', days: 1, total: 4, intensity: 'good', target: ['Beiden'], reason: 'Vrijdag voor Koningsdag (ma 27 apr): vrijdag + weekend + maandag feest = 4 vrije dagen op rij.', season: '🐣 APRIL', koppelen: null},
+        {date: '2026-04-28', days: 3, total: 6, intensity: 'good', target: ['Werknemer'], reason: 'Din–do ziek na weekend + Koningsdag: za–zo + ma feest + 3 ziekdagen = 6 kalenderdagen op rij (scholieren zitten dan vaak al in meivakantie).', season: '🐣 APRIL', koppelen: null},
+        {date: '2026-05-04', days: 5, total: 8, intensity: 'good', target: ['Scholier'], reason: 'Eerste schoolweek ná meivakantie: zo laatste vakantiedag + ma–vr ziek + weekend = zachte uitloop.', season: '🌷 MEI', koppelen: null},
+        {date: '2026-05-06', days: 3, total: 6, intensity: 'top', target: ['Scholier'], reason: 'Di Bevrijdingsdag vrij + wo–vr ziek na meivakantie = van di t/m zo één blok van 6 vrije dagen.', season: '🌷 MEI', koppelen: null},
+        {date: '2026-05-11', days: 3, total: 6, intensity: 'top', target: ['Beiden'], reason: 'Ma–wo ziek vóór Hemelvaart (do 14 mei): za–zo ervoor + do Hemelvaart erachter = 6 dagen op rij.', season: '🌷 MEI', koppelen: null},
+        {date: '2026-05-15', days: 1, total: 4, intensity: 'top', target: ['Beiden'], reason: 'Vrijdag ná Hemelvaart (do): do feest + vr ziek + weekend = 4 dagen.', season: '🌷 MEI', koppelen: null},
+        {date: '2026-05-22', days: 1, total: 4, intensity: 'good', target: ['Beiden'], reason: 'Vrijdag vóór 2e Pinksterdag (ma 25 mei): vr + za–zo + ma feest = 4 dagen.', season: '🌷 MEI', koppelen: null},
+        {date: '2026-06-29', days: 5, total: 51, intensity: 'top', target: ['Scholier'], reason: 'Hele schoolweek vóór zomer Noord (za 4 jul): weekend + ma–vr ziek plakt aan hele zomervakantie t/m zo 16 aug.', season: '☀️ JUNI', koppelen: null},
+        {date: '2026-07-03', days: 1, total: 3, intensity: 'normal', target: ['Werknemer'], reason: 'Zonder schoolvakantie: vrijdag ziek + weekend = 3 vrije dagen.', season: '🌞 JULI', koppelen: null},
+        {date: '2026-08-17', days: 5, total: 8, intensity: 'good', target: ['Scholier'], reason: 'Eerste schoolweek ná zomer: zo laatste vakantiedag + ma–vr ziek + weekend = acht dagen op rij.', season: '🌴 AUGUSTUS', koppelen: null},
+        {date: '2026-09-25', days: 1, total: 3, intensity: 'good', target: ['Beiden'], reason: 'Vrijdag-brug: lang weekend.', season: '🍂 SEPTEMBER', koppelen: null},
+        {date: '2026-10-05', days: 5, total: 16, intensity: 'good', target: ['Scholier'], reason: 'Schoolweek vóór herfst Noord (za 10 okt): weekend + ma–vr ziek + hele herfstvakantie t/m zo 18 okt.', season: '🍁 OKTOBER', koppelen: null},
+        {date: '2026-10-09', days: 1, total: 3, intensity: 'normal', target: ['Werknemer'], reason: 'Zonder schoolvakantie: vrijdag ziek + weekend = 3 dagen.', season: '🍁 OKTOBER', koppelen: null},
+        {date: '2026-10-19', days: 5, total: 8, intensity: 'good', target: ['Scholier'], reason: 'Eerste schoolweek ná herfst: zo laatste vakantiedag + ma–vr ziek + weekend.', season: '🍁 OKTOBER', koppelen: null},
+        {date: '2026-11-13', days: 1, total: 3, intensity: 'normal', target: ['Beiden'], reason: 'Vrijdag de 13e.', season: '🎃 NOVEMBER', koppelen: null},
+        {date: '2026-12-14', days: 5, total: 23, intensity: 'good', target: ['Scholier'], reason: 'Schoolweek vóór kerst (za 19 dec): weekend + ma–vr ziek plakt aan kerstvakantie t/m zo 3 jan.', season: '🎄 DECEMBER', koppelen: null},
+        {date: '2026-12-24', days: 1, total: 4, intensity: 'good', target: ['Werknemer'], reason: 'Donderdag voor Kerst: do ziek + vr 1e Kerstdag + za 2e Kerstdag + zo weekend = 4 dagen op rij.', season: '🎄 DECEMBER', koppelen: null}
+    ],
+    midden: [
+        {date: '2026-01-02', days: 1, total: 4, intensity: 'top', target: ['Beiden'], reason: 'Vrijdag na Nieuwjaarsdag (do): do feestdag + deze vrijdag ziek + weekend = 4 dagen op rij.', season: '❄️ JANUARI', koppelen: null},
+        {date: '2026-02-09', days: 5, total: 16, intensity: 'good', target: ['Scholier'], reason: 'Hele schoolweek vóór voorjaarsvakantie (za 14 feb): weekend + ma–vr ziek plakt aan hele vakantie t/m zo 22 feb.', season: '🥶 FEBRUARI', koppelen: null},
+        {date: '2026-03-13', days: 1, total: 3, intensity: 'normal', target: ['Beiden'], reason: 'Vrijdag de 13e: klassieke vrijdag-brug naar het weekend.', season: '🌸 MAART', koppelen: null},
+        {date: '2026-04-20', days: 5, total: 16, intensity: 'good', target: ['Scholier'], reason: 'Schoolweek vóór meivakantie (za 25 apr): weekend + ma–vr ziek + hele meivakantie = één lange vrije reeks.', season: '🐣 APRIL', koppelen: null},
+        {date: '2026-04-24', days: 1, total: 4, intensity: 'good', target: ['Beiden'], reason: 'Vrijdag voor Koningsdag (ma 27 apr): vrijdag + weekend + maandag feest = 4 vrije dagen op rij.', season: '🐣 APRIL', koppelen: null},
+        {date: '2026-04-28', days: 3, total: 6, intensity: 'good', target: ['Werknemer'], reason: 'Din–do ziek na weekend + Koningsdag: za–zo + ma feest + 3 ziekdagen = 6 kalenderdagen op rij.', season: '🐣 APRIL', koppelen: null},
+        {date: '2026-05-04', days: 5, total: 8, intensity: 'good', target: ['Scholier'], reason: 'Eerste schoolweek ná meivakantie: zo laatste vakantiedag + ma–vr ziek + weekend = zachte uitloop.', season: '🌷 MEI', koppelen: null},
+        {date: '2026-05-06', days: 3, total: 6, intensity: 'top', target: ['Scholier'], reason: 'Di Bevrijdingsdag vrij + wo–vr ziek na meivakantie = van di t/m zo één blok van 6 vrije dagen.', season: '🌷 MEI', koppelen: null},
+        {date: '2026-05-11', days: 3, total: 6, intensity: 'top', target: ['Beiden'], reason: 'Ma–wo ziek vóór Hemelvaart (do 14 mei): za–zo ervoor + do Hemelvaart erachter = 6 dagen op rij.', season: '🌷 MEI', koppelen: null},
+        {date: '2026-05-15', days: 1, total: 4, intensity: 'top', target: ['Beiden'], reason: 'Vrijdag ná Hemelvaart (do): do feest + vr ziek + weekend = 4 dagen.', season: '🌷 MEI', koppelen: null},
+        {date: '2026-05-22', days: 1, total: 4, intensity: 'good', target: ['Beiden'], reason: 'Vrijdag vóór 2e Pinksterdag (ma 25 mei): vr + za–zo + ma feest = 4 dagen.', season: '🌷 MEI', koppelen: null},
+        {date: '2026-07-13', days: 5, total: 51, intensity: 'top', target: ['Scholier'], reason: 'Hele schoolweek vóór zomer Midden (za 18 jul): weekend + ma–vr ziek plakt aan hele zomervakantie t/m zo 30 aug.', season: '🌞 JULI', koppelen: null},
+        {date: '2026-07-17', days: 1, total: 3, intensity: 'normal', target: ['Werknemer'], reason: 'Zonder schoolvakantie: vrijdag ziek + weekend = 3 vrije dagen.', season: '🌞 JULI', koppelen: null},
+        {date: '2026-08-31', days: 5, total: 8, intensity: 'good', target: ['Scholier'], reason: 'Eerste schoolweek ná zomer: zo laatste vakantiedag + ma–vr ziek + weekend = acht dagen op rij.', season: '🌴 AUGUSTUS', koppelen: null},
+        {date: '2026-09-25', days: 1, total: 3, intensity: 'good', target: ['Beiden'], reason: 'Vrijdag-brug: lang weekend.', season: '🍂 SEPTEMBER', koppelen: null},
+        {date: '2026-10-12', days: 5, total: 16, intensity: 'good', target: ['Scholier'], reason: 'Schoolweek vóór herfst Midden/Zuid (za 17 okt): weekend + ma–vr ziek + hele herfstvakantie t/m zo 25 okt.', season: '🍁 OKTOBER', koppelen: null},
+        {date: '2026-10-16', days: 1, total: 3, intensity: 'normal', target: ['Werknemer'], reason: 'Zonder schoolvakantie: vrijdag ziek + weekend = 3 dagen.', season: '🍁 OKTOBER', koppelen: null},
+        {date: '2026-10-26', days: 5, total: 8, intensity: 'good', target: ['Scholier'], reason: 'Eerste schoolweek ná herfst: zo laatste vakantiedag + ma–vr ziek + weekend.', season: '🍁 OKTOBER', koppelen: null},
+        {date: '2026-11-13', days: 1, total: 3, intensity: 'normal', target: ['Beiden'], reason: 'Vrijdag de 13e.', season: '🎃 NOVEMBER', koppelen: null},
+        {date: '2026-12-14', days: 5, total: 23, intensity: 'good', target: ['Scholier'], reason: 'Schoolweek vóór kerst (za 19 dec): weekend + ma–vr ziek plakt aan kerstvakantie t/m zo 3 jan.', season: '🎄 DECEMBER', koppelen: null},
+        {date: '2026-12-24', days: 1, total: 4, intensity: 'good', target: ['Werknemer'], reason: 'Donderdag voor Kerst: do ziek + vr 1e Kerstdag + za 2e Kerstdag + zo weekend = 4 dagen op rij.', season: '🎄 DECEMBER', koppelen: null}
+    ],
+    zuid: [
+        {date: '2026-01-02', days: 1, total: 4, intensity: 'top', target: ['Beiden'], reason: 'Vrijdag na Nieuwjaarsdag (do): do feestdag + deze vrijdag ziek + weekend = 4 dagen op rij.', season: '❄️ JANUARI', koppelen: null},
+        {date: '2026-02-09', days: 5, total: 16, intensity: 'good', target: ['Scholier'], reason: 'Hele schoolweek vóór voorjaarsvakantie (za 14 feb): weekend + ma–vr ziek plakt aan hele vakantie t/m zo 22 feb.', season: '🥶 FEBRUARI', koppelen: null},
+        {date: '2026-03-13', days: 1, total: 3, intensity: 'normal', target: ['Beiden'], reason: 'Vrijdag de 13e: klassieke vrijdag-brug naar het weekend.', season: '🌸 MAART', koppelen: null},
+        {date: '2026-04-20', days: 5, total: 16, intensity: 'good', target: ['Scholier'], reason: 'Schoolweek vóór meivakantie (za 25 apr): weekend + ma–vr ziek + hele meivakantie = één lange vrije reeks.', season: '🐣 APRIL', koppelen: null},
+        {date: '2026-04-24', days: 1, total: 4, intensity: 'good', target: ['Beiden'], reason: 'Vrijdag voor Koningsdag (ma 27 apr): vrijdag + weekend + maandag feest = 4 vrije dagen op rij.', season: '🐣 APRIL', koppelen: null},
+        {date: '2026-04-28', days: 3, total: 6, intensity: 'good', target: ['Werknemer'], reason: 'Din–do ziek na weekend + Koningsdag: za–zo + ma feest + 3 ziekdagen = 6 kalenderdagen op rij.', season: '🐣 APRIL', koppelen: null},
+        {date: '2026-05-04', days: 5, total: 8, intensity: 'good', target: ['Scholier'], reason: 'Eerste schoolweek ná meivakantie: zo laatste vakantiedag + ma–vr ziek + weekend = zachte uitloop.', season: '🌷 MEI', koppelen: null},
+        {date: '2026-05-06', days: 3, total: 6, intensity: 'top', target: ['Scholier'], reason: 'Di Bevrijdingsdag vrij + wo–vr ziek na meivakantie = van di t/m zo één blok van 6 vrije dagen.', season: '🌷 MEI', koppelen: null},
+        {date: '2026-05-11', days: 3, total: 6, intensity: 'top', target: ['Beiden'], reason: 'Ma–wo ziek vóór Hemelvaart (do 14 mei): za–zo ervoor + do Hemelvaart erachter = 6 dagen op rij.', season: '🌷 MEI', koppelen: null},
+        {date: '2026-05-15', days: 1, total: 4, intensity: 'top', target: ['Beiden'], reason: 'Vrijdag ná Hemelvaart (do): do feest + vr ziek + weekend = 4 dagen.', season: '🌷 MEI', koppelen: null},
+        {date: '2026-05-22', days: 1, total: 4, intensity: 'good', target: ['Beiden'], reason: 'Vrijdag vóór 2e Pinksterdag (ma 25 mei): vr + za–zo + ma feest = 4 dagen.', season: '🌷 MEI', koppelen: null},
+        {date: '2026-07-06', days: 5, total: 51, intensity: 'top', target: ['Scholier'], reason: 'Hele schoolweek vóór zomer Zuid (za 11 jul): weekend + ma–vr ziek plakt aan hele zomervakantie t/m zo 23 aug.', season: '🌞 JULI', koppelen: null},
+        {date: '2026-07-10', days: 1, total: 3, intensity: 'normal', target: ['Werknemer'], reason: 'Zonder schoolvakantie: vrijdag ziek + weekend = 3 vrije dagen.', season: '🌞 JULI', koppelen: null},
+        {date: '2026-08-24', days: 5, total: 8, intensity: 'good', target: ['Scholier'], reason: 'Eerste schoolweek ná zomer: zo laatste vakantiedag + ma–vr ziek + weekend = acht dagen op rij.', season: '🌴 AUGUSTUS', koppelen: null},
+        {date: '2026-09-25', days: 1, total: 3, intensity: 'good', target: ['Beiden'], reason: 'Vrijdag-brug: lang weekend.', season: '🍂 SEPTEMBER', koppelen: null},
+        {date: '2026-10-12', days: 5, total: 16, intensity: 'good', target: ['Scholier'], reason: 'Schoolweek vóór herfst Midden/Zuid (za 17 okt): weekend + ma–vr ziek + hele herfstvakantie t/m zo 25 okt.', season: '🍁 OKTOBER', koppelen: null},
+        {date: '2026-10-16', days: 1, total: 3, intensity: 'normal', target: ['Werknemer'], reason: 'Zonder schoolvakantie: vrijdag ziek + weekend = 3 dagen.', season: '🍁 OKTOBER', koppelen: null},
+        {date: '2026-10-26', days: 5, total: 8, intensity: 'good', target: ['Scholier'], reason: 'Eerste schoolweek ná herfst: zo laatste vakantiedag + ma–vr ziek + weekend.', season: '🍁 OKTOBER', koppelen: null},
+        {date: '2026-11-13', days: 1, total: 3, intensity: 'normal', target: ['Beiden'], reason: 'Vrijdag de 13e.', season: '🎃 NOVEMBER', koppelen: null},
+        {date: '2026-12-14', days: 5, total: 23, intensity: 'good', target: ['Scholier'], reason: 'Schoolweek vóór kerst (za 19 dec): weekend + ma–vr ziek plakt aan kerstvakantie t/m zo 3 jan.', season: '🎄 DECEMBER', koppelen: null},
+        {date: '2026-12-24', days: 1, total: 4, intensity: 'good', target: ['Werknemer'], reason: 'Donderdag voor Kerst: do ziek + vr 1e Kerstdag + za 2e Kerstdag + zo weekend = 4 dagen op rij.', season: '🎄 DECEMBER', koppelen: null}
+    ]
+};
+
+let currentRegio = 'noord';
+let currentType = 'scholier';
+let selectedDate = new Date();
+
+function localYMD(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
+function addDaysYMD(ymd, delta) {
+    const [y, m, d] = ymd.split('-').map(Number);
+    const dt = new Date(y, m - 1, d + delta, 12, 0, 0, 0);
+    return localYMD(dt);
+}
+
+/** Dag die vanzelf vrij is: za/zo, feestdag, en optioneel schoolvakantie (alleen voor scholier-logica). */
+function isAutomatischVrijKalenderdag(ymd, telSchoolvakantie, regio) {
+    const [y, mo, d] = ymd.split('-').map(Number);
+    const cal = new Date(y, mo - 1, d, 12, 0, 0, 0);
+    const dow = cal.getDay();
+    if (dow === 0 || dow === 6) return true;
+    if (FEESTDAGEN.some(f => f.date === ymd)) return true;
+    if (telSchoolvakantie && VAKANTIES[regio].some(v => ymd >= v.s && ymd <= v.e)) return true;
+    return false;
+}
+
+/** Kalenderbereik [L,R] van het doorlopende blok (ziekdagen + weekend/feest/vakantie er tegenaan). */
+function goudmijnBlokGrenzenVanStart(startYMD, sickDays, telSchoolvakantie, regio) {
+    if (!startYMD || sickDays < 1) return null;
+    let L = startYMD;
+    let R = startYMD;
+    for (let i = 1; i < sickDays; i++) R = addDaysYMD(R, 1);
+    while (isAutomatischVrijKalenderdag(addDaysYMD(L, -1), telSchoolvakantie, regio)) L = addDaysYMD(L, -1);
+    while (isAutomatischVrijKalenderdag(addDaysYMD(R, 1), telSchoolvakantie, regio)) R = addDaysYMD(R, 1);
+    return { L, R };
+}
+
+function goudmijnBlokGrenzen(item) {
+    return goudmijnBlokGrenzenVanStart(item.date, item.days, telSchoolvakantieVoorItem(item), currentRegio);
+}
+
+/** Of het blok [L,R] de kalendermaand year/monthIndex (1–12 als 0-based idx) raakt. */
+function blokRaaktKalenderMaand(grenzen, year, monthIndex) {
+    if (!grenzen) return false;
+    const p = n => String(n).padStart(2, '0');
+    const first = `${year}-${p(monthIndex + 1)}-01`;
+    const lastDay = new Date(year, monthIndex + 1, 0, 12, 0, 0, 0).getDate();
+    const last = `${year}-${p(monthIndex + 1)}-${p(lastDay)}`;
+    return grenzen.L <= last && grenzen.R >= first;
+}
+
+/**
+ * Aantal kalenderdagen op één stuk: sickDays opeenvolgende dagen vanaf start (ziekdagen),
+ * plus automatisch weekend/feest/vakantie dat er direct tegenaan ligt (links en rechts uitbreiden).
+ */
+function telVrijeDagenOpRij(startYMD, sickDays, telSchoolvakantie, regio) {
+    const g = goudmijnBlokGrenzenVanStart(startYMD, sickDays, telSchoolvakantie, regio);
+    if (!g) return 0;
+    let n = 1;
+    let cur = g.L;
+    while (cur !== g.R) {
+        cur = addDaysYMD(cur, 1);
+        n++;
+    }
+    return n;
+}
+
+/** Of schoolvakantie meetelt bij het “uitbreiden” voor dit item en de huidige gebruiker. */
+function telSchoolvakantieVoorItem(item) {
+    const heeftScholier = item.target.includes('Scholier');
+    const heeftWerk = item.target.includes('Werknemer');
+    if (heeftScholier && !heeftWerk) return true;
+    if (heeftWerk && !heeftScholier) return false;
+    return currentType === 'scholier';
+}
+
+function totaalVoorItem(item) {
+    return telVrijeDagenOpRij(item.date, item.days, telSchoolvakantieVoorItem(item), currentRegio);
+}
+
+function passesGoudmijnTarget(item) {
+    const role = currentType === 'scholier' ? 'Scholier' : 'Werknemer';
+    return item.target.includes(role) || item.target.includes('Beiden');
+}
+
+/** Past kalenderdag ergens in het uitgebreide blok van een tip (niet alleen op de startdatum). */
+function besteStrategieVoorBlokOpDatum(ymd) {
+    let best = null;
+    let bestWin = -Infinity;
+    for (const item of GOUDMIJN_DATA[currentRegio]) {
+        if (!passesGoudmijnTarget(item)) continue;
+        const grenzen = goudmijnBlokGrenzen(item);
+        if (!grenzen || ymd < grenzen.L || ymd > grenzen.R) continue;
+        const win = totaalVoorItem(item) - item.days;
+        if (win > bestWin) {
+            bestWin = win;
+            best = item;
+        }
+    }
+    return best;
+}
+
+/** Tips waarvan het doorlopende blok deze kalendermaand raakt (ook als start in vorige/volgende maand ligt). */
+function goudmijnLijstVoorMaand(monthIndex) {
+    const year = selectedDate.getFullYear();
+    const data = GOUDMIJN_DATA[currentRegio];
+    const typedFiltered = data.filter(item => passesGoudmijnTarget(item));
+    const overlapping = typedFiltered.filter(item =>
+        blokRaaktKalenderMaand(goudmijnBlokGrenzen(item), year, monthIndex));
+    const bestPerDatum = new Map();
+    overlapping.forEach(item => {
+        const win = totaalVoorItem(item) - item.days;
+        const prev = bestPerDatum.get(item.date);
+        if (!prev || prev.win < win) bestPerDatum.set(item.date, { item, win });
+    });
+    return Array.from(bestPerDatum.values())
+        .map(o => o.item)
+        .sort((a, b) => a.date.localeCompare(b.date));
+}
+
+function isVrij(date, type, regio) {
+    const cal = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0, 0);
+    const ds = localYMD(cal);
+    const dow = cal.getDay();
+    if (dow === 0 || dow === 6) return "Weekend";
+    const f = FEESTDAGEN.find(f => f.date === ds);
+    if (f) return f.n;
+    if (type === 'scholier') {
+        const v = VAKANTIES[regio].find(v => ds >= v.s && ds <= v.e);
+        if (v) return "Schoolvakantie";
+    }
+    return null;
+}
+
+function updateCountdown() {
+    const today = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 12, 0, 0, 0);
+    const countdownMsg = document.getElementById('countdownMessage');
+    const countdownDays = document.getElementById('countdownDays');
+
+    let next = null;
+
+    for (let i = 1; i <= 450; i++) {
+        const checkDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + i, 12, 0, 0, 0);
+        const dateStr = localYMD(checkDate);
+
+        const vrij = isVrij(checkDate, currentType, currentRegio);
+        if (vrij) {
+            let label;
+            if (vrij === 'Weekend') label = 'weekend';
+            else if (vrij === 'Schoolvakantie') label = 'schoolvakantie';
+            else label = vrij;
+            next = { days: i, text: `Volgende JA over ${i} dag${i === 1 ? '' : 'en'} · ${label} (al vrij)` };
+            break;
+        }
+
+        if (besteStrategieVoorBlokOpDatum(dateStr)) {
+            next = { days: i, text: `Volgende JA over ${i} dag${i === 1 ? '' : 'en'} · tactisch (ziekmelden)` };
+            break;
+        }
+    }
+
+    if (next) {
+        countdownMsg.textContent = next.text;
+        countdownDays.textContent = `${next.days} DAGEN`;
+    } else {
+        countdownMsg.textContent = 'Geen volgende JA gevonden voor deze keuzes.';
+        countdownDays.textContent = '—';
+    }
+}
+
+function calculateTotals(monthDisplayUpper) {
+    const monthIndex = selectedDate.getMonth();
+    const lijst = goudmijnLijstVoorMaand(monthIndex);
+
+    let sumZiek = 0;
+    let sumBonus = 0;
+    let longest = 0;
+    lijst.forEach(item => {
+        const tot = totaalVoorItem(item);
+        const win = tot - item.days;
+        sumZiek += item.days;
+        sumBonus += win;
+        if (tot > longest) longest = tot;
+    });
+
+    document.getElementById('calcStrategyTitle').textContent = `💰 Jouw 2026 ${monthDisplayUpper} Besparings-Strategie`;
+    document.getElementById('calcMonthPart').textContent = monthDisplayUpper;
+    document.getElementById('calcTipCount').textContent = String(lijst.length);
+    document.getElementById('calcBonusSum').textContent = `+${sumBonus}`;
+    document.getElementById('calcSickLine').textContent =
+        sumZiek === 1 ? '1 ziekdag' : `${sumZiek} ziekedagen`;
+    document.getElementById('calcLongest').textContent = String(longest);
+}
+
+function update() {
+    const free = isVrij(selectedDate, currentType, currentRegio);
+    const cal = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 12, 0, 0, 0);
+    const ds = localYMD(cal);
+    const tactischBlokItem = !free ? besteStrategieVoorBlokOpDatum(ds) : null;
+    const tactischIsStart = tactischBlokItem && tactischBlokItem.date === ds;
+
+    const options = { weekday: 'long', day: 'numeric', month: 'long' };
+    document.getElementById('dayLabel').textContent = selectedDate.toLocaleDateString('nl-NL', options);
+
+    const verdictWordEl = document.getElementById('verdictWord');
+    const verdictEmojiEl = document.getElementById('verdictEmoji');
+
+    if (free) {
+        document.body.className = 'state-ja';
+        verdictWordEl.textContent = 'VRIJ!';
+        verdictEmojiEl.textContent = '🎉';
+        document.getElementById('subVerdict').textContent = 'Je bent al vrij vandaag';
+        let msg;
+        if (free === 'Weekend') msg = 'Geniet van je weekend!';
+        else if (free === 'Schoolvakantie') msg = 'Geniet van je schoolvakantie!';
+        else msg = `${free}. Geniet van je vrije dag!`;
+        document.getElementById('verdictReason').textContent = msg;
+    } else if (tactischBlokItem) {
+        document.body.className = 'state-ja';
+        verdictWordEl.textContent = 'JA';
+        verdictEmojiEl.textContent = '🤒';
+        const tot = totaalVoorItem(tactischBlokItem);
+        const ziek = tactischBlokItem.days;
+        const win = tot - ziek;
+        const startFmt = new Date(tactischBlokItem.date + 'T12:00:00').toLocaleDateString('nl-NL', {
+            weekday: 'long', day: 'numeric', month: 'long'
+        });
+        if (tactischIsStart) {
+            document.getElementById('subVerdict').textContent = 'Tactische ziekmelding mogelijk vandaag';
+            document.getElementById('verdictReason').textContent =
+                `${tot} dagen op één stuk: ${ziek === 1 ? '1 dag' : ziek + ' dagen'} ziek melden → +${win} extra (bonus). Details bij De Goudmijn.`;
+        } else {
+            document.getElementById('subVerdict').textContent = 'Deze dag hoort bij een tactisch Goudmijn-blok';
+            document.getElementById('verdictReason').textContent =
+                `Zelfde doorlopende reeks als vanaf ${startFmt}: ${tot} kalenderdagen op één stuk (${ziek === 1 ? '1 ziekdag' : ziek + ' ziekedagen'}, +${win} bonus).`;
+        }
+    } else {
+        document.body.className = 'state-nee';
+        verdictWordEl.textContent = 'NEE';
+        verdictEmojiEl.textContent = currentType === 'scholier' ? '🎒' : '💼';
+        document.getElementById('subVerdict').textContent = 'Geen tactische ziekmelding vandaag';
+        document.getElementById('verdictReason').textContent = currentType === 'scholier'
+            ? 'Deze startdatum staat niet in De Goudmijn voor jouw profiel — gewoon naar school.'
+            : 'Deze startdatum staat niet in De Goudmijn voor jouw profiel — gewoon werken.';
+    }
+
+    updateCountdown();
+    updateGoudmijn();
+}
+
+function updateGoudmijn() {
+    const monthIndex = selectedDate.getMonth();
+    const monthNameLong = selectedDate.toLocaleDateString('nl-NL', { month: 'long' });
+    const monthName = monthNameLong.toUpperCase();
+    document.getElementById('monthTitle').textContent = monthName;
+
+    const toonLijst = goudmijnLijstVoorMaand(monthIndex);
+
+    const listDiv = document.getElementById('goldList');
+    
+    if (toonLijst.length === 0) {
+        listDiv.innerHTML = `<p class="text-xs opacity-40 text-center py-10">Geen strategieën in ${monthNameLong}...</p>`;
+        calculateTotals(monthName);
+        return;
+    }
+
+    let html = '';
+
+    const viewedYear = selectedDate.getFullYear();
+
+    toonLijst.forEach((item, index) => {
+        const itemDate = new Date(item.date + 'T12:00:00');
+        const tot = totaalVoorItem(item);
+        const win = tot - item.days;
+        const dayName = itemDate.toLocaleDateString('nl-NL', {weekday:'long', day:'numeric', month:'long'});
+        const intensityClass = `intensity-${item.intensity}`;
+        const intensityEmoji = item.intensity === 'top' ? '🔥' : item.intensity === 'good' ? '🟡' : '⚪';
+        const tagClass = item.intensity === 'top' ? 'tag-top' : item.intensity === 'good' ? 'tag-good' : 'tag-normal';
+        const startInAndereMaand = itemDate.getMonth() !== monthIndex || itemDate.getFullYear() !== viewedYear;
+        const grenzenBlok = goudmijnBlokGrenzen(item);
+        const blokEindKort = grenzenBlok
+            ? new Date(grenzenBlok.R + 'T12:00:00').toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })
+            : '';
+        const meermaandsBadge = startInAndereMaand
+            ? `<span class="tag-region border border-white/15 text-[9px] opacity-90">↳ Meermaands blok · start ${itemDate.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' })}${blokEindKort ? ` t/m ${blokEindKort}` : ''}</span>`
+            : '';
+
+        html += `
+            <div class="gold-item ${intensityClass} p-5 rounded-xl bg-white/5 border border-white/5">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div class="flex-1 w-full">
+                        <div class="flex items-center gap-2 mb-2 flex-wrap">
+                            <p class="text-xs font-bold uppercase tracking-wide">${intensityEmoji} ${dayName}</p>
+                            <span class="tag-region ${tagClass}">
+                                ${item.intensity === 'top' ? '🔥 TOP' : item.intensity === 'good' ? '🟡 GOED' : '⚪ NORMAAL'}
+                            </span>
+                            ${meermaandsBadge}
+                        </div>
+                        <p class="text-xs mb-3 opacity-85 leading-relaxed">💡 ${item.reason}</p>
+                        <div class="flex flex-wrap gap-2 mb-2">
+                            <span class="bg-black/60 px-3 py-1 rounded text-[10px] font-bold">🤧 Meld je ${item.days} dag${item.days > 1 ? 'en' : ''} ziek</span>
+                            <span class="bg-accent/10 text-accent px-3 py-1 rounded text-[10px] font-bold">✨ ${tot} dagen op één stuk vrij</span>
+                        </div>
+
+                        ${item.koppelen ? `
+                            <div class="slim-koppelen">
+                                🔗 SLIM KOPPELEN: Ziek melden op ${new Date(item.koppelen.date).toLocaleDateString('nl-NL', {day:'numeric', month:'short'})} → ${item.koppelen.extra} extra dagen!
+                                <div class="slim-koppelen-desc">Verbind beide periodes voor maximaal voordeel</div>
+                            </div>
+                        ` : ''}
+
+                        <button class="whatsapp-btn" onclick="shareToWhatsApp('Op ${dayName}: ${tot} dagen op één stuk vrij met ${item.days} ${item.days === 1 ? 'ziekdag' : 'ziekedagen'}! KanIkMijVandaagZiekMelden.nl 🤐')">
+                            📱 Deel via WhatsApp
+                        </button>
+                    </div>
+                    <div class="text-right min-w-[108px] shrink-0">
+                        <div class="text-[8px] opacity-40 uppercase font-black leading-none mb-0.5 tracking-tighter">Doorlopend blok</div>
+                        <div class="text-2xl font-display text-accent leading-none">${tot}</div>
+                        <div class="text-[9px] opacity-45 mb-3">dagen op rij</div>
+                        <div class="text-[8px] opacity-40 uppercase font-black leading-none mb-0.5 tracking-tighter">Bonus</div>
+                        <div class="text-3xl font-display text-accent2 leading-none">+${win}</div>
+                        <div class="text-[9px] opacity-55 mt-1 leading-tight">${tot} totaal − ${item.days} ziek</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    listDiv.innerHTML = html;
+
+    calculateTotals(monthName);
+}
+
+function shareToWhatsApp(text) {
+    const encoded = encodeURIComponent(text);
+    window.open(`https://wa.me/?text=${encoded}`, '_blank');
+}
+
+function setType(t) {
+    currentType = t;
+    document.getElementById('btnScholier').className = t === 'scholier' ? 'seg-btn active' : 'seg-btn';
+    document.getElementById('btnArbeider').className = t === 'arbeider' ? 'seg-btn active' : 'seg-btn';
+    document.getElementById('typeSub').textContent = t === 'scholier' ? "Schoolvakanties worden meegerekend." : "Alleen feestdagen en weekenden.";
+    update();
+}
+
+function setRegio(r) {
+    currentRegio = r;
+    ['Noord','Midden','Zuid'].forEach(reg => {
+        document.getElementById('btn'+reg).className = r.toLowerCase() === reg.toLowerCase() ? 'seg-btn active' : 'seg-btn';
+    });
+    const texts = {
+        noord: "Groningen, Friesland, Drenthe, Overijssel, Flevoland, Noord-Holland",
+        midden: "Utrecht, Zuid-Holland, Gelderland, Noord-Brabant, Flevoland",
+        zuid: "Noord-Brabant, Limburg, Zeeland, Gelderland"
+    };
+    document.getElementById('regioSub').textContent = texts[r];
+    update();
+}
+
+function setToday() {
+    const now = new Date();
+    now.setHours(12, 0, 0, 0);
+    selectedDate = now;
+    document.getElementById('datePicker').value = localYMD(now);
+    update();
+}
+
+document.getElementById('datePicker').addEventListener('change', (e) => {
+    const v = e.target.value;
+    if (!v) return;
+    const [y, m, d] = v.split('-').map(Number);
+    selectedDate = new Date(y, m - 1, d, 12, 0, 0, 0);
+    update();
+});
+
+setToday();
+</script>
+</body>
+</html>
